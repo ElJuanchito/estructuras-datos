@@ -58,7 +58,7 @@ public class ImprimirCola {
 	}
 
 	private static Cola<Oveja> ordernarOvejasAux(Cola<Oveja> establo, Cola<Oveja> aux1, Cola<Oveja> aux2) {
-		if(aux1 == null && aux2 == null) return establo;
+		return null;
 		
 	}
 }

@@ -59,14 +59,15 @@ public class SimpleList<E> implements LinkedList<E> {
 
 	@Override
 	public boolean add(int index, E element) {
-		if(! validIndex(index)) return false;
-		if(index == 0) addFirst(element);
-		var node = head;
-		var newNode = new Node<E>(element, getNode(index));
-		var n = Node<E>();
-		while(Node<E> n; n != node) {
-			
-		}
+//		if(! validIndex(index)) return false;
+//		if(index == 0) addFirst(element);
+//		var node = head;
+//		var newNode = new Node<E>(element, getNode(index));
+//		var n = Node<E>();
+//		while(Node<E> n; n != node) {
+//			
+//		}
+		return true;
 		
 	}
 
