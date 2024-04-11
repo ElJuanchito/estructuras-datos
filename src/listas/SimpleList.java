@@ -2,162 +2,227 @@ package listas;
 
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
-public class SimpleList<E> implements LinkedList<E> {
+public class SimpleList<T extends Comparable<T>> implements LinkedList<T> {
 
-	private Node<E> head;
+	private Node<T> head;
 	private int size;
 
-	public SimpleList() {
-		head = null;
+	public SimpleList(){
 		size = 0;
 	}
-	
-	private class SimpleListIterator<E> implements Iterator<E>{
-		
-		private Node<E> actual;
-		private int i;
-		
-		public SimpleListIterator(Node<E> head) {
-			this.actual = head;
-		}
+
+	public SimpleList(Node<T> head){this.head = head; this.size = 0;}
+
+	private class Node<T>{
+		T element;
+		Node<T> next;
+
+		Node(T element) {this.element = element;}
+	}
+
+	private class SimpleListIterator implements Iterator<T>{
+
+		private Node<T> node;
+
+		SimpleListIterator(Node<T> node){this.node = node;}
 
 		@Override
 		public boolean hasNext() {
-			return (i < size) ? true : false;
+			return node != null;
 		}
 
 		@Override
-		public E next() {
-			if(!hasNext()) return null;
-			E element = actual.getElement();
-			actual = actual.getNext();
-			return element;
+		public T next() {
+			if(!hasNext()) throw new NoSuchElementException();
+			T value = node.element;
+			node = node.next;
+			return value;
 		}
-		
+
 	}
 
 	@Override
-	public void addFirst(E element) {
-		if (head == null)
-			head = new Node<E>(element);
-		else {
-			var newHead = new Node<E>(element);
-			newHead.setNext(head);
-			head = newHead;
+	public Iterator<T> iterator() {
+		return new SimpleListIterator(head);
+	}
+
+	@Override
+	public void addHead(T element) {
+		var node = new Node<>(element);
+		if (!isEmpty()) node.next = head;
+		head = node;
+		size++;
+	}
+
+	@Override
+	public void addTail(T element) {
+		var node = new Node<>(element);
+		if(isEmpty()) head = node;
+		else{
+			var current = head;
+			while(current.next != null) current = current.next;
+			current = node;
 		}
 		size++;
 	}
 
 	@Override
-	public void addEnd(E element) {
-		var node = head;
-		while (node.getNext() != null)
-			node = node.getNext();
-		node.setNext(new Node<E>(element));
-	}
-
-	@Override
-	public boolean add(int index, E element) {
-//		if(! validIndex(index)) return false;
-//		if(index == 0) addFirst(element);
-//		var node = head;
-//		var newNode = new Node<E>(element, getNode(index));
-//		var n = Node<E>();
-//		while(Node<E> n; n != node) {
-//			
-//		}
-		return true;
-		
-	}
-
-	@Override
-	public E getValue(int index) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Node<E> getNode(int index) {
-		if(!validIndex(index)) return null;
-		var node = head;
-		int pos = 0;
-		while(index != pos) node = node.getNext();
-		return node;
-	}
-
-	@Override
-	public int findIndex(Node<E> node) {
-		// TODO Auto-generated method stub
-		return 0;
+	public void add(int index, T element) {
+		if(!validIndex(index)) throw new IndexOutOfBoundsException();
+		var node = new Node<>(element);
+		if(isEmpty() || index == 0){
+			node.next =head;
+			head = node;
+		}
+		else{
+			int currentPos = 0;
+			var current = head;
+			while(currentPos != index-1){current = current.next; currentPos++;}
+			node.next = current.next;
+			current.next = node;
+		}
+		size++;
 	}
 
 	@Override
 	public boolean validIndex(int index) {
-		return index < size ? true : false;
+		return size > index;
 	}
 
 	@Override
 	public boolean isEmpty() {
-		return (size == 0) ? true : false;
+		return head == null;
 	}
 
 	@Override
-	public boolean removeFirst() {
-		// TODO Auto-generated method stub
-		return false;
+	public void removeHead() {
+		if(isEmpty()) throw new NoSuchElementException();
+		head = head.next;
+		size--;
 	}
 
 	@Override
-	public boolean removeEnd() {
-		// TODO Auto-generated method stub
-		return false;
+	public void removeTail() {
+		if(isEmpty()) throw new NoSuchElementException();
+		if(head.next == null) head = null;
+		else{
+			var current = head;
+			Node<T> previous = null;
+			while(current.next != null){
+				previous = current;
+				current=current.next;
+			}
+			previous.next = null;
+		}
+		size--;
 	}
 
 	@Override
-	public boolean remove(E element) {
-		// TODO Auto-generated method stub
-		return false;
+	public void remove(int index) {
+		if(isEmpty()) throw new NoSuchElementException();
+		if(!validIndex(index)) throw new IndexOutOfBoundsException();
+		if(index == 0) head = null;
+		else{
+			int currentPos = 0;
+			var current = head;
+			while(currentPos != index-1) {current = current.next; currentPos ++;}
+			current.next = current.next.next;
+		}
+		size--;
 	}
 
 	@Override
-	public void updateNode(int index, E element) {
-		var node = head;
-		int i = 0;
-		while(i != index) {
-			node = node.getNext();
-			i++;
-		} node.setElement(element);
+	public void remove(T element) {
+		if(isEmpty()) throw new NoSuchElementException();
+		if(head.element.equals(element)) head = head.next;
+		else{
+			var current = head;
+			Node<T> previous = null;
+			while (!current.element.equals(element)) {
+				if(current.next == null) throw new NoSuchElementException();
+				previous=current;
+				current=current.next;
+			}
+			previous.next = current.next;
+		}
+		size--;
 	}
 
 	@Override
 	public void sort() {
-		// TODO Auto-generated method stub
+		if (isEmpty() || size == 1) return;
+		head = quickSort(head);
+	}
 
+	private Node<T> quickSort(Node<T> node) {
+		if (node == null || node.next == null) return node;
+
+		Node<T> pivot = node;
+		Node<T> lessHead = null;
+		Node<T> greaterHead = null;
+		Node<T> equalHead = pivot;
+		Node<T> current = node.next;
+		Node<T> next = null;
+
+		while (current != null) {
+			next = current.next;
+			if (current.element.compareTo(pivot.element) < 0) {
+				current.next = lessHead;
+				lessHead = current;
+			} else if (current.element.compareTo(pivot.element) > 0) {
+				current.next = greaterHead;
+				greaterHead = current;
+			} else {
+				current.next = equalHead;
+				equalHead = current;
+			}
+			current = next;
+		}
+
+		// Recursivamente ordenar las sublistas
+		lessHead = quickSort(lessHead);
+		greaterHead = quickSort(greaterHead);
+
+		// Unir las sublistas ordenadas
+		if (lessHead != null) {
+			Node<T> temp = lessHead;
+			while (temp.next != null) {
+				temp = temp.next;
+			}
+			temp.next = equalHead;
+		} else {
+			lessHead = equalHead;
+		}
+		equalHead.next = greaterHead;
+
+		return lessHead;
 	}
 
 	@Override
-	public void sort(Comparator<E> comparator) {
-		// TODO Auto-generated method stub
+	public void print() {
+		if (isEmpty()) {
+			System.out.println("La lista está vacía");
+			return;
+		}
 
+		Node<T> current = head;
+		while (current != null) {
+			System.out.print(current.element);
+			if (current.next != null) {
+				System.out.print(" -> ");
+			}
+			current = current.next;
+		}
+		System.out.println();
 	}
 
-	@Override
-	public String toString() {
-		String msg = "{ ";
-		Iterator<E> iterador = iterator();
-		while(iterador.hasNext()) {
-			msg += iterador.next() + ", ";
-		} return msg + "}";
-	}
 
 	@Override
 	public void clean() {
 		head = null;
+		size = 0;
 	}
 
-	@Override
-	public Iterator<E> iterator() {
-		return new SimpleListIterator<E>(head);
-	}
 }
